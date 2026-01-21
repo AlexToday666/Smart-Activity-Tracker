@@ -27,12 +27,6 @@ public class EventController {
         this.eventMapper = eventMapper;
     }
 
-    @GetMapping
-    public Page<EventResponseDto> getAllEvents(Pageable pageable){
-        return eventService.getAllEvents(pageable)
-                .map(eventMapper::toDto);
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<EventResponseDto> getEvent(@PathVariable Long id) {
         return eventService.getEventById(id)
