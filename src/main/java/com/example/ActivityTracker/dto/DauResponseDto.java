@@ -7,21 +7,21 @@ public class DauResponseDto {
     private final Instant to;
     private final long uniqueUsers;
 
-    public DauResponseDto(Instant from, Instant to, long uniqueUsers){
+    public DauResponseDto(Instant from, Instant to, long uniqueUsers) {
         this.from = from;
         this.to = to;
         this.uniqueUsers = uniqueUsers;
     }
 
-    public Instant getFrom(){
+    public Instant getFrom() {
         return from;
     }
 
-    public Instant getTo(){
+    public Instant getTo() {
         return to;
     }
 
-    public long getUniqueUsers(){
+    public long getUniqueUsers() {
         return uniqueUsers;
     }
 }

@@ -1,18 +1,16 @@
 package com.example.ActivityTracker.service;
 
-import com.example.ActivityTracker.model.Event;
-import com.example.ActivityTracker.repository.EventRepository;
 import com.example.ActivityTracker.dto.EventTypeCount;
 import com.example.ActivityTracker.exception.NotFoundException;
-
+import com.example.ActivityTracker.model.Event;
+import com.example.ActivityTracker.repository.EventRepository;
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -91,7 +89,7 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Event> getEventsByEventType(String eventType, Pageable pageable){
+    public Page<Event> getEventsByEventType(String eventType, Pageable pageable) {
         return eventRepository.findByEventTypeOrderByEventTimeDesc(eventType, pageable);
     }
 
@@ -102,7 +100,7 @@ public class EventService {
             Instant to,
             Pageable pageable
     ) {
-        if (from.isAfter(to)){
+        if (from.isAfter(to)) {
             throw new IllegalArgumentException("from must be before to");
         }
         return eventRepository.findByUserIdAndEventTimeBetweenOrderByEventTimeDesc(userId, from, to, pageable);

@@ -3,17 +3,24 @@ package com.example.ActivityTracker.controller;
 import com.example.ActivityTracker.dto.EventRequestDto;
 import com.example.ActivityTracker.dto.EventResponseDto;
 import com.example.ActivityTracker.exception.BadRequestException;
+import com.example.ActivityTracker.mapper.EventMapper;
 import com.example.ActivityTracker.model.Event;
 import com.example.ActivityTracker.service.EventService;
-import com.example.ActivityTracker.mapper.EventMapper;
 import jakarta.validation.Valid;
+import java.time.Instant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.Instant;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
@@ -45,7 +52,7 @@ public class EventController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
             Pageable pageable
     ) {
-        if ((from == null) != (to == null)){
+        if ((from == null) != (to == null)) {
             throw new BadRequestException("from and to must be provided together");
         }
         Page<Event> events;
