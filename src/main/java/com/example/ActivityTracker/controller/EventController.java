@@ -6,8 +6,16 @@ import com.example.ActivityTracker.exception.BadRequestException;
 import com.example.ActivityTracker.mapper.EventMapper;
 import com.example.ActivityTracker.model.Event;
 import com.example.ActivityTracker.service.EventService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+
 import java.time.Instant;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -23,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
+@Tag(name = "Events", description = "API для управления событиями пользователей")
 @RestController
 @RequestMapping("/api/events")
 public class EventController {
@@ -34,6 +43,21 @@ public class EventController {
         this.eventMapper = eventMapper;
     }
 
+    @Operation(
+            summary = "Получить событие по ID",
+            description = "Возвращает событие с указанным идентификатором"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Событие найдено",
+                    content = @Content(schema = @Schema(implementation = EventResponseDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Событие не найдено"
+            )
+    })
     @GetMapping("/{id}")
     public ResponseEntity<EventResponseDto> getEvent(@PathVariable Long id) {
         return eventService.getEventById(id)
@@ -42,6 +66,21 @@ public class EventController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(
+            summary = "Получить список событий",
+            description = "Возвращает список событий с возможностью фильтрации. " +
+                    "Фильтрации можно комбинировать. Параметры from и to должны указываться вместе."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Список событий успешно получен"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Некорректные параметры запроса (например, from указан без to)"
+            )
+    })
     @GetMapping
     public Page<EventResponseDto> getEvents(
             @RequestParam(required = false) String userId,
@@ -71,6 +110,22 @@ public class EventController {
         return events.map(eventMapper::toDto);
     }
 
+    @Operation(
+            summary = "Создать новое событие",
+            description = "Создаёт новое событие пользователя. Если eventTime не указан, " +
+                    "автоматически устанавливается текущее время."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Событие успешно создано",
+                    content = @Content(schema = @Schema(implementation = EventResponseDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Некорректные данные (валидация не пройдена)"
+            )
+    })
     @PostMapping
     public ResponseEntity<EventResponseDto> createEvent(@RequestBody @Valid EventRequestDto dto) {
         Event event = eventMapper.toEntity(dto);
@@ -78,6 +133,25 @@ public class EventController {
         return ResponseEntity.ok(eventMapper.toDto(savedEvent));
     }
 
+    @Operation(
+            summary = "Обновить событие",
+            description = "Обновляет существующее событие по ID"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Событие успешно обновлено",
+                    content = @Content(schema = @Schema(implementation = EventResponseDto.class))
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Событие не найдено"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Некорректные данные"
+            )
+    })
     @PutMapping("/{id}")
     public ResponseEntity<EventResponseDto> updateEvent(@PathVariable Long id,
                                                         @RequestBody @Valid EventRequestDto dto) {
@@ -86,6 +160,20 @@ public class EventController {
         return ResponseEntity.ok(eventMapper.toDto(updateEvent));
     }
 
+    @Operation(
+            summary = "Удалить событие",
+            description = "Удаляет событие по идентификатору"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "Событие успешно удалено"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Событие не найдено"
+            )
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
         eventService.deleteEvent(id);
