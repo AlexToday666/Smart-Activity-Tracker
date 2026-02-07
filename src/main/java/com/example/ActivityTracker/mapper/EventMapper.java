@@ -17,10 +17,13 @@ public class EventMapper {
         }
 
         Event event = new Event();
+        event.setEventId(dto.getEventId());
         event.setUserId(dto.getUserId());
-        event.setEventType(dto.getEventType());
+        event.setEventType(dto.getType());
         event.setMetadata(dto.getMetadata());
-        event.setEventTime(dto.getEventTime());
+        event.setOccurredAt(dto.getOccurredAt());
+        event.setSource(dto.getSource());
+        event.setSessionId(dto.getSessionId());
 
         return event;
     }
@@ -32,10 +35,15 @@ public class EventMapper {
         }
         EventResponseDto dto = new EventResponseDto();
         dto.setId(event.getId());
+        dto.setProjectId(event.getProjectId());
+        dto.setEventId(event.getEventId());
         dto.setUserId(event.getUserId());
-        dto.setEventType(event.getEventType());
+        dto.setType(event.getEventType());
         dto.setMetadata(event.getMetadata());
-        dto.setEventTime(event.getEventTime());
+        dto.setOccurredAt(event.getOccurredAt());
+        dto.setReceivedAt(event.getReceivedAt());
+        dto.setSource(event.getSource());
+        dto.setSessionId(event.getSessionId());
 
         return dto;
     }
