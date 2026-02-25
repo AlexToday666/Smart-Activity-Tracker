@@ -1,9 +1,12 @@
 package com.example.ActivityTracker.controller;
 
 import com.example.ActivityTracker.model.Event;
+import com.example.ActivityTracker.model.Project;
 import com.example.ActivityTracker.repository.EventRepository;
+import com.example.ActivityTracker.repository.ProjectRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,15 +21,13 @@ import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.time.Instant;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureWebMvc
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 @Transactional
 class AnalyticsControllerIntegrationTest {
 
@@ -49,8 +50,12 @@ class AnalyticsControllerIntegrationTest {
     @Autowired
     private EventRepository eventRepository;
 
+    @Autowired
+    private ProjectRepository projectRepository;
+
     private MockMvc mockMvc;
     private ObjectMapper objectMapper;
+    private Project project;
 
     @BeforeEach
     void setUp() {
@@ -58,6 +63,11 @@ class AnalyticsControllerIntegrationTest {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         eventRepository.deleteAll();
+        projectRepository.deleteAll();
+        project = new Project();
+        project.setName("Analytics Project");
+        project.setSlug("analytics-project");
+        project = projectRepository.save(project);
     }
 
     @Test
@@ -126,6 +136,8 @@ class AnalyticsControllerIntegrationTest {
 
     private void createEvent(String userId, String eventType, Instant eventTime) {
         Event event = new Event();
+        event.setProject(project);
+        event.setEventId(userId + "-" + eventType + "-" + eventTime.toEpochMilli());
         event.setUserId(userId);
         event.setEventType(eventType);
         event.setEventTime(eventTime);

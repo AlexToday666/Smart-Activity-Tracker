@@ -57,11 +57,11 @@ public class EventServiceTest {
 
     @Test
     void getEventsByUser_delegatesToRepository() {
-        when(eventRepository.findByUserIdOrderByEventTimeDesc("user-1", Pageable.unpaged()))
+        when(eventRepository.findByUserIdOrderByOccurredAtDesc("user-1", Pageable.unpaged()))
                 .thenReturn(Page.empty());
         Page<Event> result = eventService.getEventsByUser("user-1", Pageable.unpaged());
         assertEquals(0, result.getTotalElements());
-        verify(eventRepository).findByUserIdOrderByEventTimeDesc("user-1", Pageable.unpaged());
+        verify(eventRepository).findByUserIdOrderByOccurredAtDesc("user-1", Pageable.unpaged());
     }
 
     @Test
@@ -92,7 +92,7 @@ public class EventServiceTest {
         Event result = eventService.updateEvent(1L, updated);
 
         assertEquals("new", result.getEventType());
-        assertEquals("new-meta", result.getMetadata());
+        assertEquals("new-meta", result.getMetadata().asText());
         assertEquals(Instant.parse("2024-02-01T00:00:00Z"), result.getEventTime());
     }
 
