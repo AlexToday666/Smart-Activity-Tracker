@@ -3,6 +3,14 @@ spring:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+app:
+  logging:
+    logstash-host: ${LOGSTASH_HOST:localhost}
+    logstash-port: ${LOGSTASH_PORT:5000}
 
 management:
   endpoints:
