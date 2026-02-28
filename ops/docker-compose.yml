@@ -20,8 +20,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/activity
       SPRING_DATASOURCE_USERNAME: activity
       SPRING_DATASOURCE_PASSWORD: activity
+      LOGSTASH_HOST: logstash
+      LOGSTASH_PORT: 5000
     depends_on:
       - db
+      - logstash
 
   prometheus:
     image: prom/prometheus:v2.52.0
@@ -41,9 +44,42 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
       - grafana_data:/var/lib/grafana
+      - ../infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.13.4
+    ports:
+      - "5000:5000"
+      - "9600:9600"
+    volumes:
+      - ../infra/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
 
 volumes:
   pgdata:
   grafana_data:
+  esdata:

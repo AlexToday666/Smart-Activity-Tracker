@@ -1,0 +1,33 @@
+{
+  "title": "Smart Activity Tracker",
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Ingested events",
+      "targets": [{"expr": "rate(events_ingested_total[5m])"}],
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8}
+    },
+    {
+      "type": "timeseries",
+      "title": "Rejected and duplicate events",
+      "targets": [
+        {"expr": "rate(events_rejected_total[5m])"},
+        {"expr": "rate(events_duplicate_total[5m])"}
+      ],
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8}
+    },
+    {
+      "type": "timeseries",
+      "title": "Analytics latency",
+      "targets": [{"expr": "rate(analytics_query_duration_seconds_sum[5m]) / rate(analytics_query_duration_seconds_count[5m])"}],
+      "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8}
+    },
+    {
+      "type": "timeseries",
+      "title": "Authentication failures",
+      "targets": [{"expr": "rate(authentication_failures_total[5m])"}],
+      "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8}
+    }
+  ]
+}

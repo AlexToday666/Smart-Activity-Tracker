@@ -1,0 +1,1 @@
+{"type":"index-pattern","id":"smart-activity-tracker-logs","attributes":{"title":"smart-activity-tracker-logs-*","timeFieldName":"@timestamp"}}
