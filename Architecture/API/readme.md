@@ -1,48 +1,38 @@
-# API слой
+<h1 align="center">API слой</h1>
 
-## Ответственность
+<h2 align="center">Ответственность</h2>
 
-API слой принимает HTTP-запросы, валидирует входные данные, конвертирует DTO <-> сущности и передаёт управление в сервисный слой.
+API слой принимает HTTP-запросы, валидирует входные данные, преобразует DTO и передаёт управление в сервисный слой.
 
-## Основные классы
+<h2 align="center">Основные контроллеры</h2>
 
-- `EventController` — CRUD и фильтрация событий (`/api/events`).
-- `AnalyticsController` — аналитические эндпоинты (`/api/analytics`).
+- `ProjectController` — управление проектами и API-ключами (`/api/v1/projects`).
+- `EventController` — приём одиночных и пакетных событий, поиск и demo CRUD событий (`/api/v1/events`).
+- `AnalyticsController` — аналитические HTTP-методы (`/api/v1/analytics`).
 
-## Контракты
+<h2 align="center">Основные контракты</h2>
 
-DTO в `src/main/java/com/example/ActivityTracker/dto`:
+- `ProjectRequestDto`, `ProjectResponseDto` — проекты.
+- `ApiKeyCreateRequestDto`, `ApiKeyCreatedResponseDto`, `ApiKeyResponseDto` — API-ключи.
+- `EventRequestDto`, `EventResponseDto` — события.
+- `BatchIngestResponseDto`, `BatchItemErrorDto` — отчёт пакетного приёма событий.
+- DTO аналитики: DAU/WAU/MAU, retention, cohorts, funnels, sessions, top users и top event types.
 
-- `EventRequestDto` — входящий запрос (валидация `@NotBlank`).
-- `EventResponseDto` — ответ для событий.
-- `EventTypeCount` — элемент аналитики по типам событий.
-- `DauResponseDto` — ответ DAU.
+<h2 align="center">Валидация и ошибки</h2>
 
-## Валидация и ошибки
+- Валидация выполняется через `@Valid` и ограничения Bean Validation.
+- Методы приёма событий требуют заголовок `X-API-Key`.
+- Пакетный приём событий валидирует каждый элемент независимо и возвращает `errors[]` с индексом элемента.
+- Ошибки сериализуются в единый формат `ApiError` через `GlobalExceptionHandler`.
 
-- Валидация выполняется через `@Valid` и ограничения из DTO.
-- В `GET /api/events` запрещено указывать `from` без `to` и наоборот — выбрасывается `BadRequestException`.
-- В аналитике временной диапазон проверяется на уровне сервиса (см. `EventService`).
+<h2 align="center">Пагинация и сортировка</h2>
 
-Ошибки сериализуются в `ApiError` через `GlobalExceptionHandler`.
+`GET /api/v1/events` принимает стандартные параметры `Pageable`:
 
-## Пагинация и сортировка
+- `page` — номер страницы, начиная с 0.
+- `size` — размер страницы.
+- `sort` — сортировка, например `occurredAt,desc`.
 
-`GET /api/events` принимает стандартные параметры `Pageable`:
+<h2 align="center">Формат времени</h2>
 
-- `page` — номер страницы (0-based)
-- `size` — размер страницы
-- `sort` — сортировка (например, `eventTime,desc`)
-
-## Формат времени
-
-Все временные параметры передаются как `Instant` в формате ISO‑8601 (UTC), например: `2026-01-21T12:00:00Z`.
-
-## Расширение
-
-Чтобы добавить новый эндпоинт:
-
-1. Добавить метод в контроллере.
-2. Реализовать логику в `EventService`.
-3. При необходимости расширить `EventRepository`.
-4. Обновить DTO/маппер и OpenAPI аннотации.
+Все временные параметры передаются в ISO-8601, например `2026-02-10T12:00:00Z`.

@@ -1,36 +1,39 @@
-# Доступ к данным
+<h1 align="center">Доступ к данным</h1>
 
-## Ответственность
+<h2 align="center">Ответственность</h2>
 
-Слой доступа к данным реализован через Spring Data JPA и отвечает за получение/сохранение событий и аналитические выборки.
+Слой доступа к данным реализован через Spring Data JPA и отвечает за сохранение событий, проектов, API-ключей и аналитические выборки.
 
-## Основной интерфейс
+<h2 align="center">Репозитории</h2>
 
-- `EventRepository` — наследуется от `JpaRepository<Event, Long>`.
+- `ProjectRepository` — проекты.
+- `ApiKeyRepository` — поиск активных ключей по hash и список ключей проекта.
+- `EventRepository` — события, фильтрация, проверки идемпотентности и аналитические запросы.
 
-## Запросы и выборки
+<h2 align="center">События</h2>
 
-Производные методы:
+`events` хранит:
 
-- `findByUserIdOrderByEventTimeDesc`
-- `findByEventTypeOrderByEventTimeDesc`
-- `findByEventTimeBetweenOrderByEventTimeDesc`
-- `findByUserIdAndEventTimeBetweenOrderByEventTimeDesc`
-
-Пользовательские JPQL запросы:
-
-- `countByEventTypeBetween(from, to)` — агрегация по типам событий.
-- `countDistinctUsersBetween(from, to)` — DAU по уникальным пользователям.
-
-В аналитике используются границы `[from, to)`: `from` включительно, `to` исключительно.
-Для списков `between` соответствует включающим границам по стандарту JPA.
-
-## Производительность
-
-Индексы определены на уровне миграции:
-
+- `project_id`
+- `event_id`
 - `user_id`
 - `event_type`
-- `event_date`
+- `occurred_at`
+- `received_at`
+- `metadata` как `jsonb`
+- `source`
+- `session_id`
 
-Это ускоряет выборки по пользователю, типу и диапазону времени.
+<h2 align="center">Индексы</h2>
+
+Ключевые индексы создаются Flyway-миграцией:
+
+- `unique(project_id, event_id)`
+- `(project_id, occurred_at)`
+- `(project_id, event_type)`
+- `(project_id, user_id)`
+- `GIN(metadata)`
+
+<h2 align="center">Границы времени</h2>
+
+Аналитика использует диапазон `[from, to)`: `from` включительно, `to` исключительно.

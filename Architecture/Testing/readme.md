@@ -1,20 +1,20 @@
-# Тестирование
+<h1 align="center">Тестирование</h1>
 
-## Unit-тесты
+<h2 align="center">Unit-тесты</h2>
 
-`EventServiceTest` использует Mockito для изоляции слоя репозитория.
+`EventServiceTest` использует Mockito для проверки сервисной логики без реальной БД.
 
-## Интеграционные тесты
+<h2 align="center">Интеграционные тесты</h2>
 
 - `EventControllerIntegrationTest`
 - `AnalyticsControllerIntegrationTest`
 
-Тесты поднимают PostgreSQL через Testcontainers и используют `MockMvc` для HTTP-проверок.
+Интеграционные тесты используют Spring Boot, MockMvc, PostgreSQL Testcontainers и Flyway migrations.
 
-## Запуск
+<h2 align="center">Запуск</h2>
 
 ```bash
 mvn test
 ```
 
-Для интеграционных тестов требуется Docker.
+Если совместимый Docker недоступен, Testcontainers-тесты пропускаются через `disabledWithoutDocker = true`, а unit-тесты продолжают выполняться.

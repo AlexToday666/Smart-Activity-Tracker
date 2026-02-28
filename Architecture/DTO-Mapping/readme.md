@@ -1,18 +1,19 @@
-# DTO и маппинг
+<h1 align="center">DTO и маппинг</h1>
 
-## DTO
+<h2 align="center">Назначение DTO</h2>
 
-DTO отделяют внешний контракт API от внутренней модели данных:
+DTO отделяют внешний контракт API от внутренней JPA-модели и фиксируют формат запросов/ответов.
 
-- `EventRequestDto` — входящий запрос на создание/обновление события.
-- `EventResponseDto` — исходящий ответ для событий.
-- `DauResponseDto` — ответ для DAU.
-- `EventTypeCount` — элемент ответа для аналитики по типам.
+<h2 align="center">Основные DTO</h2>
 
-Валидация входящих данных задаётся через `@NotBlank`.
+- `ProjectRequestDto`, `ProjectResponseDto` — проекты.
+- `ApiKeyCreateRequestDto`, `ApiKeyCreatedResponseDto`, `ApiKeyResponseDto` — API-ключи.
+- `EventRequestDto`, `EventResponseDto` — события с JSONB metadata.
+- `BatchIngestResponseDto`, `BatchItemErrorDto` — результат пакетного приёма событий.
+- DTO аналитики — ответы для DAU/WAU/MAU, retention, cohorts, funnels, sessions и top lists.
 
-## Маппер
+<h2 align="center">Маппер событий</h2>
 
-`EventMapper` конвертирует `EventRequestDto` в `Event` и `Event` в `EventResponseDto`.
+`EventMapper` преобразует `EventRequestDto` в `Event` и `Event` в `EventResponseDto`.
 
-Обновление пользователя в `PUT /api/events/{id}` не применяется: сервис сохраняет `userId` существующей сущности.
+Внешний контракт использует поле `type`, а доменная модель хранит его как `eventType`.

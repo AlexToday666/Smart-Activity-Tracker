@@ -1,26 +1,34 @@
-# Инфраструктура и запуск
+<h1 align="center">Инфраструктура и запуск</h1>
 
-## Dockerfile
+<h2 align="center">Dockerfile</h2>
 
 Сборка выполняется в два шага:
 
 1. `maven:3.9.6-eclipse-temurin-17` — сборка `jar`.
 2. `eclipse-temurin:17-jre` — минимальный runtime.
 
-## docker-compose
+<h2 align="center">Docker Compose</h2>
 
-Состав окружения:
+Локальный стек поднимается командой:
 
-- `db` (PostgreSQL 16), порт `5433:5432`
-- `app` (Spring Boot), порт `8080`
-- `prometheus` (v2.52.0), порт `9090`
-- `grafana` (10.4.2), порт `3000`
+```bash
+docker compose -f ops/docker-compose.yml up -d --build
+```
 
-Переменные для приложения прокидываются через environment и соответствуют `application.yml`.
+Сервисы:
 
-## Хранилища
+- `app` — Spring Boot, порт `8080`.
+- `db` — PostgreSQL 16, порт `5433:5432`.
+- `prometheus` — порт `9090`.
+- `grafana` — порт `3000`.
+- `elasticsearch` — порт `9200`.
+- `logstash` — порты `5000` и `9600`.
+- `kibana` — порт `5601`.
 
-Используются volume-тома:
+<h2 align="center">Хранилища</h2>
 
-- `pgdata` — данные PostgreSQL
-- `grafana_data` — данные Grafana
+Используются Docker volumes:
+
+- `pgdata`
+- `grafana_data`
+- `esdata`

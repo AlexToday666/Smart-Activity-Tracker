@@ -4,89 +4,145 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Activity Tracker</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-<div class="page-shell">
-    <header class="hero">
-        <div class="hero-copy">
+<div class="app-shell">
+    <header class="topbar">
+        <div>
             <p class="eyebrow">Smart Activity Tracker</p>
-            <h1>Небольшая панель для событий и базовой аналитики.</h1>
-            <p class="hero-text">
-                Страница работает поверх существующего backend API: можно завести событие,
-                посмотреть поток событий и запросить агрегаты за период.
-            </p>
+            <h1>Event analytics console</h1>
         </div>
-        <div class="hero-card">
-            <p class="hero-card-label">API</p>
-            <strong>/api/events</strong>
-            <span>/api/analytics/dau</span>
-            <span>/api/analytics/event-types</span>
+        <div class="service-links">
+            <a href="/swagger-ui/index.html">Swagger</a>
+            <a href="/actuator/prometheus">Prometheus</a>
         </div>
     </header>
 
-    <main class="layout">
+    <main class="dashboard">
+        <section class="panel control-panel">
+            <div class="panel-heading">
+                <h2>Project</h2>
+                <p>Demo management endpoints are intentionally open for local showcase use.</p>
+            </div>
+            <form id="project-form" class="grid-form">
+                <label>
+                    <span>Name</span>
+                    <input name="name" placeholder="Marketing Website" required>
+                </label>
+                <label>
+                    <span>Slug</span>
+                    <input name="slug" placeholder="marketing-website" required>
+                </label>
+                <button type="submit">Create project</button>
+            </form>
+            <label class="full">
+                <span>Current project</span>
+                <select id="project-select"></select>
+            </label>
+            <form id="api-key-form" class="grid-form">
+                <label>
+                    <span>Key name</span>
+                    <input name="name" placeholder="local-demo" required>
+                </label>
+                <button type="submit">Generate API key</button>
+            </form>
+            <label class="full">
+                <span>X-API-Key</span>
+                <input id="api-key-input" placeholder="sat_..." autocomplete="off">
+            </label>
+        </section>
+
         <section class="panel">
             <div class="panel-heading">
-                <h2>Новое событие</h2>
-                <p>Минимальная форма для проверки API без Postman.</p>
+                <h2>Ingest event</h2>
+                <p>Single event ingestion uses the same API-key flow as external clients.</p>
             </div>
             <form id="event-form" class="stack">
+                <div class="grid-form">
+                    <label>
+                        <span>Event ID</span>
+                        <input name="eventId" placeholder="evt-001" required>
+                    </label>
+                    <label>
+                        <span>User ID</span>
+                        <input name="userId" placeholder="user-42" required>
+                    </label>
+                    <label>
+                        <span>Type</span>
+                        <input name="type" placeholder="purchase" required>
+                    </label>
+                    <label>
+                        <span>Source</span>
+                        <input name="source" placeholder="web">
+                    </label>
+                    <label>
+                        <span>Session ID</span>
+                        <input name="sessionId" placeholder="sess-42">
+                    </label>
+                    <label>
+                        <span>Occurred at</span>
+                        <input type="datetime-local" name="occurredAt">
+                    </label>
+                </div>
                 <label>
-                    <span>User ID</span>
-                    <input type="text" name="userId" placeholder="user-42" required>
+                    <span>Metadata JSON</span>
+                    <textarea name="metadata" rows="5" placeholder="{&quot;country&quot;:&quot;DE&quot;,&quot;device&quot;:&quot;mobile&quot;}"></textarea>
                 </label>
-                <label>
-                    <span>Тип события</span>
-                    <input type="text" name="eventType" placeholder="login" required>
-                </label>
-                <label>
-                    <span>Время события</span>
-                    <input type="datetime-local" name="eventTime">
-                </label>
-                <label>
-                    <span>Metadata</span>
-                    <textarea name="metadata" rows="5" placeholder="{&quot;source&quot;:&quot;web&quot;}"></textarea>
-                </label>
-                <button type="submit">Отправить событие</button>
+                <button type="submit">Ingest event</button>
             </form>
         </section>
 
         <section class="panel">
             <div class="panel-heading">
-                <h2>Фильтр событий</h2>
-                <p>Выбирай пользователя, тип и диапазон времени.</p>
+                <h2>Filters</h2>
+                <p>Metadata filters use query params such as metadata.country=DE.</p>
             </div>
             <form id="filters-form" class="stack">
-                <label>
-                    <span>User ID</span>
-                    <input type="text" name="userId" placeholder="user-42">
-                </label>
-                <label>
-                    <span>Тип события</span>
-                    <input type="text" name="eventType" placeholder="click">
-                </label>
-                <label>
-                    <span>From</span>
-                    <input type="datetime-local" name="from">
-                </label>
-                <label>
-                    <span>To</span>
-                    <input type="datetime-local" name="to">
-                </label>
-                <button type="submit">Обновить список</button>
+                <div class="grid-form">
+                    <label>
+                        <span>User ID</span>
+                        <input name="userId" placeholder="user-42">
+                    </label>
+                    <label>
+                        <span>Type</span>
+                        <input name="type" placeholder="purchase">
+                    </label>
+                    <label>
+                        <span>Source</span>
+                        <input name="source" placeholder="web">
+                    </label>
+                    <label>
+                        <span>Session ID</span>
+                        <input name="sessionId" placeholder="sess-42">
+                    </label>
+                    <label>
+                        <span>Metadata key</span>
+                        <input name="metadataKey" placeholder="country">
+                    </label>
+                    <label>
+                        <span>Metadata value</span>
+                        <input name="metadataValue" placeholder="DE">
+                    </label>
+                    <label>
+                        <span>From</span>
+                        <input type="datetime-local" name="from">
+                    </label>
+                    <label>
+                        <span>To</span>
+                        <input type="datetime-local" name="to">
+                    </label>
+                </div>
+                <button type="submit">Refresh events</button>
             </form>
         </section>
 
-        <section class="panel panel-wide">
+        <section class="panel metrics-panel">
             <div class="panel-heading">
-                <h2>Аналитика</h2>
-                <p>DAU и топ событий за выбранный период.</p>
+                <h2>Analytics</h2>
+                <p>Project-scoped DAU, top event types and top users.</p>
             </div>
-            <form id="analytics-form" class="analytics-form">
+            <form id="analytics-form" class="grid-form">
                 <label>
                     <span>From</span>
                     <input type="datetime-local" name="from" required>
@@ -95,27 +151,36 @@
                     <span>To</span>
                     <input type="datetime-local" name="to" required>
                 </label>
-                <button type="submit">Посчитать</button>
+                <button type="submit">Run queries</button>
             </form>
-            <div class="metrics">
+            <div class="metric-grid">
                 <article class="metric-card">
-                    <span class="metric-label">DAU</span>
+                    <span>DAU points</span>
                     <strong id="dau-value">-</strong>
                 </article>
                 <article class="metric-card">
-                    <span class="metric-label">Период</span>
-                    <strong id="range-value">-</strong>
+                    <span>Top type</span>
+                    <strong id="top-type-value">-</strong>
+                </article>
+                <article class="metric-card">
+                    <span>Top user</span>
+                    <strong id="top-user-value">-</strong>
                 </article>
             </div>
-            <div id="event-types" class="event-types"></div>
+            <div class="split-list">
+                <div id="event-types" class="list"></div>
+                <div id="top-users" class="list"></div>
+            </div>
         </section>
 
-        <section class="panel panel-wide">
-            <div class="panel-heading">
-                <h2>Лента событий</h2>
-                <p>Последние записи приходят из `/api/events`.</p>
+        <section class="panel events-panel">
+            <div class="panel-heading row">
+                <div>
+                    <h2>Latest events</h2>
+                    <p>Search results from GET /api/v1/events.</p>
+                </div>
+                <div id="feedback" class="feedback" aria-live="polite"></div>
             </div>
-            <div id="feedback" class="feedback" aria-live="polite"></div>
             <div id="events-list" class="events-list"></div>
         </section>
     </main>

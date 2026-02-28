@@ -1,229 +1,119 @@
-# Smart Activity Tracker
+<h1 align="center">Smart Activity Tracker</h1>
 
 <p align="center">
   <img src="./docs/assets/image.png" alt="Smart Activity Tracker logo" width="300" height="300">
 </p>
 
-Spring Boot приложение на Java 17 для приёма пользовательских событий, хранения в PostgreSQL и расчёта простой аналитики. В проект встроена простая веб-панель, которая работает поверх тех же REST-эндпоинтов.
+<p align="center">
+  Backend-сервис на Spring Boot с production-oriented подходом для приёма пользовательских событий, идемпотентного хранения и продуктовой аналитики.
+</p>
 
-## Возможности
+Проект оформлен как полноценный бэкенд-проект для портфолио: API-ключи, JSONB-метаданные, пакетный приём событий, пагинация, продвинутая аналитика, метрики Prometheus/Grafana, ELK-логирование, Testcontainers и операционная документация.
 
-- Приём событий с произвольными метаданными.
-- CRUD и фильтрация событий (по пользователю, типу, диапазону времени).
-- Комбинирование фильтров в `GET /api/events`.
-- Пагинация и сортировка через стандартный `Pageable`.
-- Базовая аналитика: DAU и топ типов событий за период.
-- Встроенный frontend для ручной отправки событий и просмотра аналитики.
-- Наблюдаемость через Actuator + Prometheus/Grafana.
-- Документация API через OpenAPI (springdoc).
+<h2 align="center">Ключевые возможности</h2>
 
-## Стек
+- Модель проектов и API-ключей, привязанных к проектам.
+- Безопасное хранение API-ключей: в БД сохраняются только SHA-256 hash-значения.
+- Приём одиночных и пакетных событий через `X-API-Key`.
+- Идемпотентность через `unique(project_id, event_id)`.
+- JSONB-метаданные и фильтрация по metadata-полям.
+- Поиск событий по проекту, пользователю, типу, источнику, сессии, диапазону времени и metadata.
+- Аналитика: DAU, WAU, MAU, retention, cohorts, funnels, sessions, top users и top event types.
+- Метрики Micrometer для приёма событий, дублей, отклонённых событий, использования API-ключей и latency аналитики.
+- Структурированные JSON-логи с `requestId` / `correlationId` и пайплайном Logstash -> Elasticsearch -> Kibana.
+- Встроенная demo UI-панель для проектов, ключей, приёма событий, фильтров и аналитических виджетов.
+- Flyway migrations, OpenAPI/Swagger, Docker Compose и Testcontainers.
 
-- Java 17, Spring Boot 3.2.3
-- Spring Web, Validation, Data JPA
-- PostgreSQL + Flyway
-- Micrometer + Prometheus + Grafana
-- springdoc-openapi
-- Testcontainers + JUnit 5 + Mockito
-
-## Архитектура
-
+<h2 align="center">Архитектура</h2>
 
 ```mermaid
 flowchart LR
-    User[Пользователь] --> UI[Встроенный Web UI]
-    Client[Клиент / Внешняя система] --> API[REST API]
-
-    UI --> API
-
-    API --> Service[Service Layer\nвалидация и бизнес-логика]
-    Service --> Repo[Repository Layer]
-    Repo --> DB[(PostgreSQL)]
-
-    Service --> Analytics[Analytics Module\nDAU и event-type stats]
-    Analytics --> DB
-
-    API --> Docs[OpenAPI / Swagger]
-
-    API --> Metrics[Actuator / Metrics]
-    Metrics --> Prometheus[Prometheus]
-    Prometheus --> Grafana[Grafana]
+    Client[Client / SDK] -->|X-API-Key| API[Spring Boot API]
+    UI[Embedded Demo UI] --> API
+    API --> Services[Service Layer]
+    Services --> DB[(PostgreSQL JSONB)]
+    API --> Metrics[Actuator / Micrometer]
+    Metrics --> Prometheus --> Grafana
+    API --> Logs[JSON Logs]
+    Logs --> Logstash --> Elasticsearch --> Kibana
 ```
 
-Подробности по слоям вынесены в `Architecture/`:
+<h2 align="center">Технологический стек</h2>
 
-- `Architecture/API/readme.md`
-- `Architecture/Service/readme.md`
-- `Architecture/Data-Access/readme.md`
-- `Architecture/Domain-Model/readme.md`
-- `Architecture/DTO-Mapping/readme.md`
-- `Architecture/Database-Migrations/readme.md`
-- `Architecture/Configuration/readme.md`
-- `Architecture/Observability/readme.md`
-- `Architecture/Infrastructure/readme.md`
-- `Architecture/Testing/readme.md`
+Java 17, Spring Boot 3.2, Maven, PostgreSQL, Flyway, Spring Data JPA, Bean Validation, Micrometer, Prometheus, Grafana, Elasticsearch, Logstash, Kibana, OpenAPI/Swagger, Testcontainers, JUnit 5, Mockito, Docker Compose.
 
-## Структура проекта
-
-- `src/main/java/.../controller` — REST API
-- `src/main/java/.../config` — конфигурация Spring/OpenAPI
-- `src/main/java/.../service` — бизнес-логика
-- `src/main/java/.../repository` — JPA доступ к данным
-- `src/main/java/.../model` — JPA сущности
-- `src/main/java/.../dto` — DTO
-- `src/main/java/.../mapper` — преобразования DTO <-> entity
-- `src/main/java/.../exception` — обработка ошибок
-- `src/main/resources/db/migration` — миграции Flyway
-- `src/main/resources/static` — встроенный frontend (`/`)
-- `ops/docker-compose.yml` — локальный docker compose
-- `ops/docker/Dockerfile` — Docker build
-- `ops/monitoring/prometheus.yml` — конфигурация Prometheus
-- `ops/qodana.yaml` — конфигурация Qodana
-
-## Модель данных
-
-Таблица `events`:
-
-| Поле | Тип | Описание |
-| --- | --- | --- |
-| `id` | BIGSERIAL | PK |
-| `user_id` | TEXT | идентификатор пользователя |
-| `event_type` | TEXT | тип события |
-| `event_date` | TIMESTAMPTZ | время события |
-| `metadata` | TEXT | метаданные (строка, обычно JSON) |
-| `created_at` | TIMESTAMPTZ | время записи в БД |
-
-`Event` в коде маппится на эти столбцы, а `eventTime` связан с `event_date`.
-
-## API
-
-### События
-
-- `GET /api/events` — список событий (пагинация).
-  - Фильтры: `userId`, `eventType`, `from`, `to`.
-  - Фильтры можно комбинировать.
-  - `from` и `to` должны передаваться вместе.
-  - Пример пагинации: `?page=0&size=20&sort=eventTime,desc`.
-- `GET /api/events/{id}` — получить событие по id.
-- `POST /api/events` — создать событие.
-- `PUT /api/events/{id}` — обновить событие (обновляются `eventType`, `metadata`, `eventTime`; `userId` не меняется).
-- `DELETE /api/events/{id}` — удалить событие.
-
-Пример создания события:
-
-```bash
-curl -sS -X POST http://localhost:8080/api/events \
-  -H 'Content-Type: application/json' \
-  -d '{"userId":"u1","eventType":"click","eventTime":"2026-01-21T12:00:00Z","metadata":"{\"button\":\"buy\"}"}'
-```
-
-### Аналитика
-
-- `GET /api/analytics/event-types?from=...&to=...` — счётчики по типам событий.
-- `GET /api/analytics/dau?from=...&to=...` — DAU за период.
-
-В аналитике время считается как `[from, to)`: `from` включительно, `to` исключительно.
-
-### Документация OpenAPI
-
-Swagger UI доступен на стандартном пути springdoc (`/swagger-ui.html`, редирект на `/swagger-ui/index.html`), если настройки не переопределены.
-
-### Встроенный frontend
-
-После старта приложения главная страница `/` открывает простую панель:
-
-- создание события;
-- фильтрация списка событий;
-- расчёт DAU и счётчиков по типам событий.
-
-## Валидация и ошибки
-
-- `EventRequestDto` валидируется через `@Valid` и `@NotBlank`.
-- Ошибки возвращаются в формате `ApiError`:
-
-```json
-{
-  "status": 400,
-  "error": "BAD_REQUEST",
-  "message": "userId is required",
-  "path": "/api/events",
-  "timestamp": "2026-01-21T12:00:00Z"
-}
-```
-
-Исключения `NotFoundException`, `BadRequestException` и ошибки валидации диапазона времени маппятся в 404/400. Остальные — в 500.
-
-## Конфигурация
-
-В `src/main/resources/application.yml` источники БД ожидаются через переменные окружения:
-
-- `SPRING_DATASOURCE_URL`
-- `SPRING_DATASOURCE_USERNAME`
-- `SPRING_DATASOURCE_PASSWORD`
-
-## Запуск
-
-### Docker Compose
+<h2 align="center">Быстрый запуск</h2>
 
 ```bash
 docker compose -f ops/docker-compose.yml up -d --build
 ```
 
-Поднимаются сервисы:
+Локальные адреса:
 
-- `app` — порт `8080`
-- `db` — PostgreSQL (хост-порт `5433` -> контейнер `5432`)
-- `prometheus` — порт `9090`
-- `grafana` — порт `3000` (логин/пароль: `admin`/`admin`)
+- Приложение / UI: `http://localhost:8080`
+- Swagger: `http://localhost:8080/swagger-ui/index.html`
+- PostgreSQL: `localhost:5433`
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3000` (`admin` / `admin`)
+- Elasticsearch: `http://localhost:9200`
+- Kibana: `http://localhost:5601`
 
-Остановить:
+Переменные окружения перечислены в `.env.example`.
 
-```bash
-docker compose -f ops/docker-compose.yml down -v
-```
-
-### Локально (без Docker)
-
-Требования: JDK 17, Maven, внешняя PostgreSQL.
+<h2 align="center">Пример основного сценария</h2>
 
 ```bash
-mvn spring-boot:run
+PROJECT_ID=$(curl -sS -X POST http://localhost:8080/api/v1/projects \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Demo Project","slug":"demo-project"}' | jq -r '.id')
+
+API_KEY=$(curl -sS -X POST "http://localhost:8080/api/v1/projects/$PROJECT_ID/api-keys" \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"local-demo"}' | jq -r '.secret')
+
+curl -sS -X POST http://localhost:8080/api/v1/events \
+  -H 'Content-Type: application/json' \
+  -H "X-API-Key: $API_KEY" \
+  -d '{"eventId":"evt-001","userId":"user-42","type":"purchase","source":"web","metadata":{"country":"DE","device":"mobile"}}'
+
+curl -sS "http://localhost:8080/api/v1/events?projectId=$PROJECT_ID&type=purchase&metadata.country=DE"
 ```
 
-## Наблюдаемость
+<h2 align="center">Примеры аналитики</h2>
 
-Actuator включён, доступны эндпоинты:
+```bash
+curl -sS "http://localhost:8080/api/v1/analytics/dau?projectId=1&from=2026-02-01T00:00:00Z&to=2026-03-01T00:00:00Z"
+curl -sS "http://localhost:8080/api/v1/analytics/funnels?projectId=1&from=2026-02-01T00:00:00Z&to=2026-03-01T00:00:00Z&steps=landing_view,signup,purchase"
+curl -sS "http://localhost:8080/api/v1/analytics/sessions?projectId=1&from=2026-02-01T00:00:00Z&to=2026-03-01T00:00:00Z"
+```
 
-- `/actuator/health`
-- `/actuator/info`
-- `/actuator/metrics`
-- `/actuator/prometheus`
+<h2 align="center">Документация</h2>
 
-Prometheus настраивается через `ops/monitoring/prometheus.yml`, Grafana доступна на `http://localhost:3000`.
+- [Архитектура](docs/architecture.md)
+- [Руководство по API](docs/api-guide.md)
+- [Модель данных](docs/data-model.md)
+- [Аналитика](docs/analytics.md)
+- [Безопасность](docs/security.md)
+- [Наблюдаемость](docs/observability.md)
+- [Логирование](docs/logging.md)
+- [Эксплуатация](docs/operations.md)
+- [Тестирование](docs/testing.md)
+- [Нагрузочное тестирование](docs/load-testing.md)
+- [ADR](docs/decisions)
 
-## Миграции Flyway
-
-Миграции лежат в `src/main/resources/db/migration` и применяются автоматически при старте приложения.
-Формат имени: `V<версия>__<описание>.sql`.
-
-## Тестирование
-
-- Unit: `EventServiceTest` (Mockito).
-- Integration: `EventControllerIntegrationTest`, `AnalyticsControllerIntegrationTest` (Testcontainers + Postgres).
-
-Запуск:
+<h2 align="center">Тестирование</h2>
 
 ```bash
 mvn test
 ```
 
-Для интеграционных тестов нужен Docker.
+Unit-тесты запускаются всегда. Integration-тесты на Testcontainers компилируются и запускаются при доступном Docker; в окружениях без совместимого Docker daemon они пропускаются автоматически.
 
-## Инфраструктурные файлы
+<h2 align="center">Нагрузочное тестирование</h2>
 
-Инфраструктурные и служебные конфиги вынесены из корня в `ops/`, чтобы корень проекта оставался компактным:
+```bash
+API_KEY=sat_xxx BASE_URL=http://localhost:8080 k6 run load-tests/batch-ingest.js
+PROJECT_ID=1 BASE_URL=http://localhost:8080 k6 run load-tests/analytics.js
+```
 
-- `ops/docker-compose.yml`
-- `ops/docker/Dockerfile`
-- `ops/monitoring/prometheus.yml`
-- `ops/qodana.yaml`
+Во время тестов смотри в Grafana метрики `events_batch_duration_seconds`, `events_ingested_total`, `events_duplicate_total` и `analytics_query_duration_seconds`.

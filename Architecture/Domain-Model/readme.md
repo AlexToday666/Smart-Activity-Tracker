@@ -1,23 +1,50 @@
-# Доменная модель
+<h1 align="center">Доменная модель</h1>
 
-## Сущность Event
+<h2 align="center">Project</h2>
 
-`Event` — JPA сущность, отображённая на таблицу `events`.
+`Project` задаёт изоляцию данных. Все события и API-ключи принадлежат конкретному проекту.
 
-### Поля и отображение
+Поля:
 
-- `id` -> `id`
-- `userId` -> `user_id`
-- `eventType` -> `event_type`
-- `eventTime` -> `event_date`
-- `metadata` -> `metadata`
-- `createdAt` -> `created_at`
+- `id`
+- `name`
+- `slug`
+- `description`
+- `createdAt`
+- `updatedAt`
 
-### Особенности
+<h2 align="center">ApiKey</h2>
 
-- `@PrePersist` выставляет `createdAt` и `eventTime`, если они не заданы.
-- `metadata` хранится как `TEXT` и обычно содержит JSON-строку.
+`ApiKey` хранит только hash секрета и используется для защиты HTTP-методов приёма событий.
 
-### Индексы
+Поля:
 
-Индексы заданы на уровне БД (см. миграции) для ускорения фильтрации.
+- `id`
+- `project`
+- `keyHash`
+- `name`
+- `active`
+- `createdAt`
+- `lastUsedAt`
+- `revokedAt`
+
+<h2 align="center">Event</h2>
+
+`Event` — пользовательское событие, привязанное к проекту.
+
+Поля:
+
+- `id`
+- `project`
+- `eventId`
+- `userId`
+- `eventType`
+- `occurredAt`
+- `receivedAt`
+- `metadata`
+- `source`
+- `sessionId`
+
+<h2 align="center">Идемпотентность</h2>
+
+Повторная отправка события с тем же `project_id` и `event_id` не создаёт дубль.
