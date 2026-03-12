@@ -1,8 +1,0 @@
-global:
-  scrape_interval: 5s
-
-scrape_config:
-  - job_name: "smart-activity-tracker"
-    metrics_path: "/actuator/prometheus"
-    static_configs:
-      - targets: ["app:8080"]
