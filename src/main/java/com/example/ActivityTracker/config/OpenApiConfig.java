@@ -1,3 +1,5 @@
+package com.example.ActivityTracker.config;
+
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 import org.springframework.context.annotation.Configuration;
@@ -7,7 +9,8 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(
                 title = "Smart Activity Tracker API",
                 version = "v1",
-                description = "REST API для приёма событий и аналитки (DAU, счетчики по типам)"
+                description = "REST API для приёма событий и аналитики"
         )
 )
-public class OpenApiConfig {}
+public class OpenApiConfig {
+}
