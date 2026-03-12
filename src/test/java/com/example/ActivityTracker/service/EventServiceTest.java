@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -46,7 +47,7 @@ public class EventServiceTest {
     }
 
     @Test
-    void getEventsBetween_throwsWhenFromAfterTo() {
+    void getEventsBetween_throwsWhenFromEqualsTo() {
         Instant from = Instant.parse("2024-02-02T00:00:00Z");
         Instant to = Instant.parse("2024-02-02T00:00:00Z");
 
@@ -60,7 +61,7 @@ public class EventServiceTest {
                 .thenReturn(Page.empty());
         Page<Event> result = eventService.getEventsByUser("user-1", Pageable.unpaged());
         assertEquals(0, result.getTotalElements());
-        verify(eventRepository).findByEventTypeOrderByEventTimeDesc("user-1", Pageable.unpaged());
+        verify(eventRepository).findByUserIdOrderByEventTimeDesc("user-1", Pageable.unpaged());
     }
 
     @Test
@@ -109,5 +110,18 @@ public class EventServiceTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> eventService.countByEventTypeBetween(from, to));
+    }
+
+    @Test
+    void countDistinctUsersBetween_acceptsValidRange() {
+        Instant from = Instant.parse("2024-02-01T00:00:00Z");
+        Instant to = Instant.parse("2024-02-02T00:00:00Z");
+
+        when(eventRepository.countDistinctUsersBetween(from, to)).thenReturn(3L);
+
+        long result = assertDoesNotThrow(() -> eventService.countDistinctUsersBetween(from, to));
+
+        assertEquals(3L, result);
+        verify(eventRepository).countDistinctUsersBetween(from, to);
     }
 }
