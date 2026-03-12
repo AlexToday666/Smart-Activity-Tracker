@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,18 +40,18 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public Page<Event> getAllEvents(Pageable pageable) {
-        return eventRepository.findAll(pageable);
+        return eventRepository.findAll(withDefaultSort(pageable));
     }
 
     @Transactional(readOnly = true)
     public Page<Event> getEventsByUser(String userId, Pageable pageable) {
-        return eventRepository.findByUserIdOrderByEventTimeDesc(userId, pageable);
+        return eventRepository.findByUserIdOrderByEventTimeDesc(userId, withDefaultSort(pageable));
     }
 
     @Transactional(readOnly = true)
     public Page<Event> getEventsBetween(Instant from, Instant to, Pageable pageable) {
         validateTimeRange(from, to);
-        return eventRepository.findByEventTimeBetweenOrderByEventTimeDesc(from, to, pageable);
+        return eventRepository.findByEventTimeBetweenOrderByEventTimeDesc(from, to, withDefaultSort(pageable));
     }
 
 
@@ -89,7 +91,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public Page<Event> getEventsByEventType(String eventType, Pageable pageable) {
-        return eventRepository.findByEventTypeOrderByEventTimeDesc(eventType, pageable);
+        return eventRepository.findByEventTypeOrderByEventTimeDesc(eventType, withDefaultSort(pageable));
     }
 
     @Transactional(readOnly = true)
@@ -100,7 +102,40 @@ public class EventService {
             Pageable pageable
     ) {
         validateTimeRange(from, to);
-        return eventRepository.findByUserIdAndEventTimeBetweenOrderByEventTimeDesc(userId, from, to, pageable);
+        return eventRepository.findByUserIdAndEventTimeBetweenOrderByEventTimeDesc(
+                userId,
+                from,
+                to,
+                withDefaultSort(pageable)
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Event> getEvents(
+            String userId,
+            String eventType,
+            Instant from,
+            Instant to,
+            Pageable pageable
+    ) {
+        if (from != null || to != null) {
+            validateTimeRange(from, to);
+        }
+
+        Specification<Event> specification = Specification.where(null);
+        if (userId != null && !userId.isBlank()) {
+            specification = specification.and((root, query, builder) -> builder.equal(root.get("userId"), userId));
+        }
+        if (eventType != null && !eventType.isBlank()) {
+            specification = specification.and(
+                    (root, query, builder) -> builder.equal(root.get("eventType"), eventType)
+            );
+        }
+        if (from != null && to != null) {
+            specification = specification.and((root, query, builder) -> builder.between(root.get("eventTime"), from, to));
+        }
+
+        return eventRepository.findAll(specification, withDefaultSort(pageable));
     }
 
     private void validateTimeRange(Instant from, Instant to) {
@@ -110,5 +145,17 @@ public class EventService {
         if (!from.isBefore(to)) {
             throw new IllegalArgumentException("from must be before to");
         }
+    }
+
+    private Pageable withDefaultSort(Pageable pageable) {
+        if (pageable.isUnpaged()) {
+            return pageable;
+        }
+        if (pageable.getSort().isSorted()) {
+            return pageable;
+        }
+        return Pageable.ofSize(pageable.getPageSize())
+                .withPage(pageable.getPageNumber())
+                .withSort(Sort.by(Sort.Direction.DESC, "eventTime"));
     }
 }

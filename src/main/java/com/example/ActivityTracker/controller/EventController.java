@@ -19,6 +19,7 @@ import java.time.Instant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -94,19 +95,7 @@ public class EventController {
         if ((from == null) != (to == null)) {
             throw new BadRequestException("from and to must be provided together");
         }
-        Page<Event> events;
-        if (userId != null && from != null) {
-            events = eventService.getEventsByUserAndBetween(userId, from, to, pageable);
-        } else if (userId != null) {
-            events = eventService.getEventsByUser(userId, pageable);
-        } else if (eventType != null) {
-            events = eventService.getEventsByEventType(eventType, pageable);
-        } else if (from != null) {
-            events = eventService.getEventsBetween(from, to, pageable);
-        } else {
-            events = eventService.getAllEvents(pageable);
-        }
-
+        Page<Event> events = eventService.getEvents(userId, eventType, from, to, pageable);
         return events.map(eventMapper::toDto);
     }
 
@@ -130,7 +119,7 @@ public class EventController {
     public ResponseEntity<EventResponseDto> createEvent(@RequestBody @Valid EventRequestDto dto) {
         Event event = eventMapper.toEntity(dto);
         Event savedEvent = eventService.createEvent(event);
-        return ResponseEntity.ok(eventMapper.toDto(savedEvent));
+        return ResponseEntity.status(HttpStatus.CREATED).body(eventMapper.toDto(savedEvent));
     }
 
     @Operation(

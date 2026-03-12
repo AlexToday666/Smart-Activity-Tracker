@@ -115,6 +115,15 @@ class AnalyticsControllerIntegrationTest {
                 .andExpect(jsonPath("$.dau").value(0));
     }
 
+    @Test
+    void getDau_shouldReturnBadRequestForInvalidRange() throws Exception {
+        mockMvc.perform(get("/api/analytics/dau")
+                        .param("from", "2024-01-02T00:00:00Z")
+                        .param("to", "2024-01-01T00:00:00Z"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("from must be before to"));
+    }
+
     private void createEvent(String userId, String eventType, Instant eventTime) {
         Event event = new Event();
         event.setUserId(userId);

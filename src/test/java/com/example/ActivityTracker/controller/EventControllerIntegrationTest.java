@@ -71,7 +71,7 @@ public class EventControllerIntegrationTest {
         mockMvc.perform(post("/api/events")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.userId").value("user-123"))
                 .andExpect(jsonPath("$.eventType").value("login"))
                 .andExpect(jsonPath("$.metadata").value("{\"source\":\"web\"}"))
@@ -124,6 +124,37 @@ public class EventControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(1))
                 .andExpect(jsonPath("$.content[0].userId").value("user-1"));
+    }
+
+    @Test
+    void getEvents_shouldCombineFilters() throws Exception {
+        Event matchingEvent = new Event();
+        matchingEvent.setUserId("user-filter");
+        matchingEvent.setEventType("login");
+        matchingEvent.setEventTime(Instant.parse("2024-01-10T12:00:00Z"));
+        eventRepository.save(matchingEvent);
+
+        Event differentType = new Event();
+        differentType.setUserId("user-filter");
+        differentType.setEventType("click");
+        differentType.setEventTime(Instant.parse("2024-01-10T13:00:00Z"));
+        eventRepository.save(differentType);
+
+        Event differentUser = new Event();
+        differentUser.setUserId("user-other");
+        differentUser.setEventType("login");
+        differentUser.setEventTime(Instant.parse("2024-01-10T14:00:00Z"));
+        eventRepository.save(differentUser);
+
+        mockMvc.perform(get("/api/events")
+                        .param("userId", "user-filter")
+                        .param("eventType", "login")
+                        .param("from", "2024-01-10T00:00:00Z")
+                        .param("to", "2024-01-11T00:00:00Z"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].userId").value("user-filter"))
+                .andExpect(jsonPath("$.content[0].eventType").value("login"));
     }
 
     @Test
