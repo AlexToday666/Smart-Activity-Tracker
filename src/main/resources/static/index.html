@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Activity Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="page-shell">
+    <header class="hero">
+        <div class="hero-copy">
+            <p class="eyebrow">Smart Activity Tracker</p>
+            <h1>Небольшая панель для событий и базовой аналитики.</h1>
+            <p class="hero-text">
+                Страница работает поверх существующего backend API: можно завести событие,
+                посмотреть поток событий и запросить агрегаты за период.
+            </p>
+        </div>
+        <div class="hero-card">
+            <p class="hero-card-label">API</p>
+            <strong>/api/events</strong>
+            <span>/api/analytics/dau</span>
+            <span>/api/analytics/event-types</span>
+        </div>
+    </header>
+
+    <main class="layout">
+        <section class="panel">
+            <div class="panel-heading">
+                <h2>Новое событие</h2>
+                <p>Минимальная форма для проверки API без Postman.</p>
+            </div>
+            <form id="event-form" class="stack">
+                <label>
+                    <span>User ID</span>
+                    <input type="text" name="userId" placeholder="user-42" required>
+                </label>
+                <label>
+                    <span>Тип события</span>
+                    <input type="text" name="eventType" placeholder="login" required>
+                </label>
+                <label>
+                    <span>Время события</span>
+                    <input type="datetime-local" name="eventTime">
+                </label>
+                <label>
+                    <span>Metadata</span>
+                    <textarea name="metadata" rows="5" placeholder="{&quot;source&quot;:&quot;web&quot;}"></textarea>
+                </label>
+                <button type="submit">Отправить событие</button>
+            </form>
+        </section>
+
+        <section class="panel">
+            <div class="panel-heading">
+                <h2>Фильтр событий</h2>
+                <p>Выбирай пользователя, тип и диапазон времени.</p>
+            </div>
+            <form id="filters-form" class="stack">
+                <label>
+                    <span>User ID</span>
+                    <input type="text" name="userId" placeholder="user-42">
+                </label>
+                <label>
+                    <span>Тип события</span>
+                    <input type="text" name="eventType" placeholder="click">
+                </label>
+                <label>
+                    <span>From</span>
+                    <input type="datetime-local" name="from">
+                </label>
+                <label>
+                    <span>To</span>
+                    <input type="datetime-local" name="to">
+                </label>
+                <button type="submit">Обновить список</button>
+            </form>
+        </section>
+
+        <section class="panel panel-wide">
+            <div class="panel-heading">
+                <h2>Аналитика</h2>
+                <p>DAU и топ событий за выбранный период.</p>
+            </div>
+            <form id="analytics-form" class="analytics-form">
+                <label>
+                    <span>From</span>
+                    <input type="datetime-local" name="from" required>
+                </label>
+                <label>
+                    <span>To</span>
+                    <input type="datetime-local" name="to" required>
+                </label>
+                <button type="submit">Посчитать</button>
+            </form>
+            <div class="metrics">
+                <article class="metric-card">
+                    <span class="metric-label">DAU</span>
+                    <strong id="dau-value">-</strong>
+                </article>
+                <article class="metric-card">
+                    <span class="metric-label">Период</span>
+                    <strong id="range-value">-</strong>
+                </article>
+            </div>
+            <div id="event-types" class="event-types"></div>
+        </section>
+
+        <section class="panel panel-wide">
+            <div class="panel-heading">
+                <h2>Лента событий</h2>
+                <p>Последние записи приходят из `/api/events`.</p>
+            </div>
+            <div id="feedback" class="feedback" aria-live="polite"></div>
+            <div id="events-list" class="events-list"></div>
+        </section>
+    </main>
+</div>
+<script src="/app.js" defer></script>
+</body>
+</html>
