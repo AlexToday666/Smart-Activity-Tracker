@@ -1,5 +1,9 @@
 # Smart Activity Tracker (backend)
 
+<p align="center">
+  <img src="./docs/assets/image.png" alt="Smart Activity Tracker logo" width="300" height="300">
+</p>
+
 Backend-сервис на Java 17 / Spring Boot для приёма пользовательских событий, хранения в PostgreSQL и расчёта простой аналитики (DAU и счётчики по типам событий).
 
 ## Возможности
