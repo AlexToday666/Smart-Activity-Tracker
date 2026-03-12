@@ -5,12 +5,12 @@ import java.time.Instant;
 public class DauResponseDto {
     private final Instant from;
     private final Instant to;
-    private final long uniqueUsers;
+    private final long dau;
 
-    public DauResponseDto(Instant from, Instant to, long uniqueUsers) {
+    public DauResponseDto(Instant from, Instant to, long dau) {
         this.from = from;
         this.to = to;
-        this.uniqueUsers = uniqueUsers;
+        this.dau = dau;
     }
 
     public Instant getFrom() {
@@ -21,7 +21,7 @@ public class DauResponseDto {
         return to;
     }
 
-    public long getUniqueUsers() {
-        return uniqueUsers;
+    public long getDau() {
+        return dau;
     }
 }
