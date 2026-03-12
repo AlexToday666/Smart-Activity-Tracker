@@ -34,14 +34,14 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: Build Docker image
-        run: docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
+        run: docker build -f ops/docker/Dockerfile -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
 
       - name: Run integration tests with Docker Compose
         run: |
-          docker compose up -d
+          docker compose -f ops/docker-compose.yml up -d
           sleep 10
           mvn verify -DskipUnitTests
-          docker compose down -v
+          docker compose -f ops/docker-compose.yml down -v
 
   docker-push:
     needs: build-and-test
