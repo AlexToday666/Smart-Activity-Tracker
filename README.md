@@ -26,22 +26,28 @@ Spring Boot приложение на Java 17 для приёма пользов
 - springdoc-openapi
 - Testcontainers + JUnit 5 + Mockito
 
-## Архитектура (обзор)
+## Архитектура
 
-```
-Client
-  │
-  ▼
-REST API (controllers)
-  │ DTO/Mapper
-  ▼
-Service (business rules, validation)
-  │
-  ▼
-Repository (JPA queries)
-  │
-  ▼
-PostgreSQL (events)
+
+```mermaid
+flowchart LR
+    User[Пользователь] --> UI[Встроенный Web UI]
+    Client[Клиент / Внешняя система] --> API[REST API]
+
+    UI --> API
+
+    API --> Service[Service Layer\nвалидация и бизнес-логика]
+    Service --> Repo[Repository Layer]
+    Repo --> DB[(PostgreSQL)]
+
+    Service --> Analytics[Analytics Module\nDAU и event-type stats]
+    Analytics --> DB
+
+    API --> Docs[OpenAPI / Swagger]
+
+    API --> Metrics[Actuator / Metrics]
+    Metrics --> Prometheus[Prometheus]
+    Prometheus --> Grafana[Grafana]
 ```
 
 Подробности по слоям вынесены в `Architecture/`:
